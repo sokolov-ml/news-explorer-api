@@ -1,8 +1,6 @@
 const Article = require('../models/article');
-const AccessDeniedError = require('../errors/access-denied-error');
 
 const getArticles = (req, res, next) => {
-  console.log(req.user._id);
   Article.find({ owner: req.user._id })
     .then((data) => {
       res.send(data);
@@ -11,24 +9,17 @@ const getArticles = (req, res, next) => {
 };
 
 const removeArticleById = (req, res, next) => {
-  Article.findById(req.params.id)
-    .orFail()
+  Article.removeArticleIfOwner(req.params.id, req.user._id)
     .then((article) => {
-      if (article.owner.toString() === req.user._id) {
-        Article.findByIdAndRemove(req.params.id)
-          .orFail()
-          .then((data) => {
-            res.send(data);
-          });
-      } else {
-        throw new AccessDeniedError('Access forbidden');
-      }
+      res.send(article);
     })
     .catch(next);
 };
 
 const createArticle = (req, res, next) => {
-  const { keyword, title, text, date, source, link, image } = req.body;
+  const {
+    keyword, title, text, date, source, link, image,
+  } = req.body;
 
   Article.create({
     keyword,

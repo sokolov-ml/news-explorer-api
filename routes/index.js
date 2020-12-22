@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const routerIndex = require('express').Router();
 
 const { celebrate, Joi } = require('celebrate');
 
@@ -6,11 +6,11 @@ const auth = require('../middlewares/auth');
 const ResourceNotFoundError = require('../errors/resource-not-found');
 
 const routerUsers = require('./users');
-const routerCards = require('./articles');
+const routerArticles = require('./articles');
 
 const { login, createUser } = require('../controllers/users');
 
-router.post(
+routerIndex.post(
   '/signin',
   celebrate({
     body: Joi.object().keys({
@@ -20,7 +20,7 @@ router.post(
   }),
   login,
 );
-router.post(
+routerIndex.post(
   '/signup',
   celebrate({
     body: Joi.object().keys({
@@ -35,12 +35,12 @@ router.post(
   createUser,
 );
 
-router.use(auth);
-router.use('/users', routerUsers);
-router.use('/articles', routerCards);
+routerIndex.use(auth);
+routerIndex.use('/users', routerUsers);
+routerIndex.use('/articles', routerArticles);
 
-router.use('*', (req, res, next) => {
+routerIndex.use('*', (req, res, next) => {
   next(new ResourceNotFoundError('Запрашиваемый ресурс не найден'));
 });
 
-module.exports = router;
+module.exports = routerIndex;

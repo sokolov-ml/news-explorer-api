@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const ObjectAlreadyExistsError = require('../errors/object-already-exists-error');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -35,15 +36,17 @@ const createUser = (req, res, next) => {
 
   bcrypt
     .hash(password, 10)
-    .then((hash) =>
-      User.create({
-        name,
-        email,
-        password: hash,
-      }),
-    )
+    .then((hash) => User.create({
+      name,
+      email,
+      password: hash,
+    }))
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'MongoError' && err.code === 11000) {
+        next(new ObjectAlreadyExistsError('Email уже зарегистрирован'));
+      }
+    });
 };
 
 // const updateUser = (req, res, next) => {
